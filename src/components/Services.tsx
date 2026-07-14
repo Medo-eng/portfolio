@@ -25,7 +25,7 @@ const packages: {
 }[] = [
   {
     name: "Starter Landing Page",
-    price: "$350",
+    price: "$150",
     ideal: "Local service providers, contractors, and startups.",
     delivery: "3-5 Days",
     featured: false,
@@ -39,7 +39,7 @@ const packages: {
   },
   {
     name: "Growth Engine Portfolio",
-    price: "$650",
+    price: "$250",
     ideal: "Independent creators, agencies, and high-ticket service businesses.",
     delivery: "7-10 Days",
     featured: true,
@@ -53,7 +53,7 @@ const packages: {
   },
   {
     name: "Ultimate Digital Showcase",
-    price: "$1,200",
+    price: "$350",
     ideal:
       "Established brands looking to completely dominate their competitors online.",
     delivery: "14-21 Days",
