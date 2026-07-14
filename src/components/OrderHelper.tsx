@@ -8,6 +8,7 @@ import {
   FolderKanban,
   Mail,
   MessageCircle,
+  MousePointerClick,
   Sparkles,
   User,
   X,
@@ -99,16 +100,17 @@ function CloudBubble({
     <motion.button
       type="button"
       onClick={onClick}
-      initial={{ opacity: 0, y: 8, scale: 0.92 }}
+      initial={{ opacity: 0, y: 10, scale: 0.9 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
-      exit={{ opacity: 0, y: 6, scale: 0.95 }}
-      transition={{ duration: 0.35, ease: easeOut }}
+      exit={{ opacity: 0, y: 8, scale: 0.94 }}
+      transition={{ duration: 0.4, ease: easeOut }}
       whileHover={{ y: -2, scale: 1.02 }}
       whileTap={{ scale: 0.98 }}
-      className="focus-ring relative max-w-[11.5rem] rounded-[1.35rem] border border-[var(--border)] bg-[var(--bg-elevated)] px-3.5 py-2.5 text-left text-[11px] leading-snug font-medium text-[var(--fg)] shadow-[var(--shadow)]"
+      className="focus-ring relative z-10 max-w-[12.5rem] rounded-[1.4rem] border border-[var(--border)] bg-[var(--bg-elevated)] px-3.5 py-2.5 text-left text-[11px] leading-snug font-medium text-[var(--fg)] shadow-[var(--shadow)]"
     >
-      <span className="absolute -bottom-1.5 right-5 size-3 rounded-full border border-[var(--border)] bg-[var(--bg-elevated)]" />
-      <span className="absolute -bottom-3 right-3.5 size-2 rounded-full border border-[var(--border)] bg-[var(--bg-elevated)]" />
+      {/* Thought/speech trail toward the mouth */}
+      <span className="pointer-events-none absolute -bottom-2 left-1/2 size-2.5 -translate-x-1/2 rounded-full border border-[var(--border)] bg-[var(--bg-elevated)]" />
+      <span className="pointer-events-none absolute bottom-[-1.15rem] left-[52%] size-1.5 -translate-x-1/2 rounded-full border border-[var(--border)] bg-[var(--bg-elevated)]" />
       {children}
     </motion.button>
   );
@@ -414,50 +416,89 @@ export function OrderHelper({ ready = true }: { ready?: boolean }) {
         ) : null}
       </AnimatePresence>
 
-      <div className="pointer-events-auto flex items-end gap-2.5">
+      <div className="pointer-events-auto flex items-end gap-3">
         <AnimatePresence>
           {!open ? (
-            <CloudBubble onClick={openHelper}>
-              <span className="mb-1 block text-[9px] font-semibold tracking-[0.16em] uppercase text-[var(--fg-muted)]">
-                Highly recommended
-              </span>
-              Let me help you with your order!
-            </CloudBubble>
+            <motion.button
+              type="button"
+              onClick={openHelper}
+              initial={{ opacity: 0, x: 12 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: 8 }}
+              transition={{ duration: 0.4, ease: easeOut, delay: 0.15 }}
+              className="focus-ring mb-2 flex flex-col items-end gap-1"
+              aria-label="Click the helper"
+            >
+              <motion.span
+                animate={{ x: [0, 4, 0] }}
+                transition={{
+                  duration: 1.2,
+                  repeat: Infinity,
+                  ease: "easeInOut",
+                }}
+                className="inline-flex items-center gap-1.5 rounded-full border border-[var(--fg)]/30 bg-[var(--fg)] px-2.5 py-1.5 text-[10px] font-semibold tracking-[0.14em] uppercase text-[var(--bg)] shadow-[var(--shadow)]"
+              >
+                <MousePointerClick className="size-3" strokeWidth={2} />
+                Click here
+                <span aria-hidden className="text-xs leading-none">
+                  →
+                </span>
+              </motion.span>
+            </motion.button>
           ) : null}
         </AnimatePresence>
 
-        <motion.button
-          type="button"
-          aria-expanded={open}
-          aria-controls={open ? panelId : undefined}
-          aria-label="Open order helper"
-          onClick={() => (open ? closePanel() : openHelper())}
-          initial={{ opacity: 0, scale: 0.8 }}
-          animate={{
-            opacity: 1,
-            scale: 1,
-            y: open ? 0 : [0, -5, 0],
-          }}
-          transition={
-            open
-              ? { duration: 0.3, ease: easeOut }
-              : {
-                  opacity: { duration: 0.4, ease: easeOut },
-                  scale: { duration: 0.4, ease: easeOut },
-                  y: { duration: 2.4, repeat: Infinity, ease: "easeInOut" },
-                }
-          }
-          whileHover={{ scale: 1.06 }}
-          whileTap={{ scale: 0.94 }}
-          className="focus-ring relative"
-        >
-          {!open && !helperCompleted ? (
-            <span className="absolute -top-1 -right-1 size-3 rounded-full bg-[var(--fg)] ring-2 ring-[var(--bg)]">
-              <span className="absolute inset-0 animate-ping rounded-full bg-[var(--fg)] opacity-60" />
-            </span>
-          ) : null}
-          <HelperFace size="lg" />
-        </motion.button>
+        <div className="flex flex-col items-center">
+          <AnimatePresence>
+            {!open ? (
+              <div className="mb-3 flex flex-col items-center">
+                <CloudBubble onClick={openHelper}>
+                  <span className="mb-1 block text-[9px] font-semibold tracking-[0.16em] uppercase text-[var(--fg-muted)]">
+                    Highly recommended
+                  </span>
+                  Let me help you with your order!
+                </CloudBubble>
+              </div>
+            ) : null}
+          </AnimatePresence>
+
+          <motion.button
+            type="button"
+            aria-expanded={open}
+            aria-controls={open ? panelId : undefined}
+            aria-label="Open order helper"
+            onClick={() => (open ? closePanel() : openHelper())}
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{
+              opacity: 1,
+              scale: 1,
+              y: open ? 0 : [0, -5, 0],
+            }}
+            transition={
+              open
+                ? { duration: 0.3, ease: easeOut }
+                : {
+                    opacity: { duration: 0.45, ease: easeOut },
+                    scale: { duration: 0.45, ease: easeOut },
+                    y: {
+                      duration: 2.4,
+                      repeat: Infinity,
+                      ease: "easeInOut",
+                    },
+                  }
+            }
+            whileHover={{ scale: 1.06 }}
+            whileTap={{ scale: 0.94 }}
+            className="focus-ring relative"
+          >
+            {!open && !helperCompleted ? (
+              <span className="absolute -top-1 -right-1 size-3 rounded-full bg-[var(--fg)] ring-2 ring-[var(--bg)]">
+                <span className="absolute inset-0 animate-ping rounded-full bg-[var(--fg)] opacity-60" />
+              </span>
+            ) : null}
+            <HelperFace size="lg" />
+          </motion.button>
+        </div>
       </div>
     </div>
   );
