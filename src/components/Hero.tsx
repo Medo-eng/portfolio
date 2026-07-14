@@ -16,7 +16,6 @@ import {
 } from "lucide-react";
 import { useRef, type MouseEvent } from "react";
 import { easeOut } from "@/lib/motion";
-import { triggerSectionIntro } from "./SectionShell";
 
 const springCfg = { stiffness: 180, damping: 26, mass: 0.5 };
 
@@ -171,7 +170,6 @@ export function Hero({ ready = true }: { ready?: boolean }) {
                 behavior: "smooth",
                 block: "start",
               });
-              window.setTimeout(() => triggerSectionIntro("contact"), 280);
             }}
             whileHover={{ y: -2 }}
             whileTap={{ scale: 0.97 }}
@@ -194,7 +192,6 @@ export function Hero({ ready = true }: { ready?: boolean }) {
                 behavior: "smooth",
                 block: "start",
               });
-              window.setTimeout(() => triggerSectionIntro("portfolio"), 280);
             }}
             whileHover={{ y: -2 }}
             whileTap={{ scale: 0.97 }}
@@ -214,7 +211,6 @@ export function Hero({ ready = true }: { ready?: boolean }) {
               behavior: "smooth",
               block: "start",
             });
-            window.setTimeout(() => triggerSectionIntro("about"), 280);
           }}
           className="mt-16 flex flex-col items-center gap-2 text-[var(--fg-muted)]"
           initial={{ opacity: 0 }}

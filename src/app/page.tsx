@@ -7,7 +7,6 @@ import { Navigation } from "@/components/Navigation";
 import { Perspective } from "@/components/Perspective";
 import { Portfolio } from "@/components/Portfolio";
 import { ScrollProgress } from "@/components/ScrollProgress";
-import { SectionShell } from "@/components/SectionShell";
 import { Services } from "@/components/Services";
 import { SiteIntro } from "@/components/SiteIntro";
 import { easeOut } from "@/lib/motion";
@@ -30,36 +29,14 @@ export default function Home() {
         <ScrollProgress />
         <Navigation ready={introDone} />
         <main>
-          <SectionShell id="home" title="Home" enabled={introDone} quiet>
-            <Hero ready={introDone} />
-          </SectionShell>
-          <SectionShell id="about" title="About" enabled={introDone}>
-            <About />
-          </SectionShell>
-          <SectionShell
-            id="perspective"
-            title="Perspective"
-            enabled={introDone}
-          >
-            <Perspective />
-          </SectionShell>
-          <SectionShell id="services" title="Services" enabled={introDone}>
-            <Services />
-          </SectionShell>
-          <SectionShell id="portfolio" title="Portfolio" enabled={introDone}>
-            <Portfolio />
-          </SectionShell>
-          <SectionShell id="contact" title="Contact" enabled={introDone}>
-            <Contact />
-          </SectionShell>
+          <Hero ready={introDone} />
+          <About />
+          <Perspective />
+          <Services />
+          <Portfolio />
+          <Contact />
         </main>
-        <motion.footer
-          initial={{ opacity: 0, y: 16 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: false, amount: 0.4 }}
-          transition={{ duration: 0.45, ease: easeOut }}
-          className="border-t border-[var(--border)] px-6 py-12 text-center text-sm text-[var(--fg-muted)]"
-        >
+        <footer className="border-t border-[var(--border)] px-6 py-12 text-center text-sm text-[var(--fg-muted)]">
           <p className="font-display text-2xl font-medium italic text-[var(--fg)]">
             Mohamed Naser
           </p>
@@ -67,7 +44,7 @@ export default function Home() {
             © {new Date().getFullYear()} · Crafting High-Converting Digital
             Systems
           </p>
-        </motion.footer>
+        </footer>
       </motion.div>
     </>
   );
