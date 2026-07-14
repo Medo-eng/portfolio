@@ -2,6 +2,7 @@
 
 import { AnimatePresence, motion } from "framer-motion";
 import {
+  ArrowUp,
   CheckCircle2,
   ExternalLink,
   Facebook,
@@ -290,6 +291,15 @@ export function Contact() {
                 autoComplete="email"
                 className="focus-ring w-full rounded-2xl border border-[var(--border)] bg-[var(--bg)] px-4 py-3 outline-none disabled:opacity-60"
               />
+              <span className="mt-2 flex items-start gap-1.5 text-xs leading-relaxed text-[var(--fg-muted)]">
+                <ArrowUp
+                  className="mt-0.5 size-3.5 shrink-0"
+                  strokeWidth={1.75}
+                  aria-hidden
+                />
+                Make sure this is correct — this email will be the one I reply
+                to!
+              </span>
             </label>
             <label className="block text-sm">
               <span className="mb-1.5 block font-medium">Message</span>
@@ -303,22 +313,36 @@ export function Contact() {
                 className="focus-ring w-full resize-none rounded-2xl border border-[var(--border)] bg-[var(--bg)] px-4 py-3 outline-none disabled:opacity-60"
               />
             </label>
-            <button
-              type="submit"
-              disabled={submitting}
-              className="focus-ring inline-flex items-center gap-2 rounded-full bg-[var(--fg)] px-5 py-3 text-sm font-semibold text-[var(--bg)] disabled:cursor-not-allowed disabled:opacity-70"
-            >
-              {submitting ? (
-                <>
-                  <Loader2 className="size-4 animate-spin" strokeWidth={1.5} />
-                  Sending…
-                </>
-              ) : (
-                <>
-                  <Send className="size-4" strokeWidth={1.5} /> Send Message
-                </>
-              )}
-            </button>
+            <div>
+              <button
+                type="submit"
+                disabled={submitting}
+                className="focus-ring inline-flex items-center gap-2 rounded-full bg-[var(--fg)] px-5 py-3 text-sm font-semibold text-[var(--bg)] disabled:cursor-not-allowed disabled:opacity-70"
+              >
+                {submitting ? (
+                  <>
+                    <Loader2
+                      className="size-4 animate-spin"
+                      strokeWidth={1.5}
+                    />
+                    Sending…
+                  </>
+                ) : (
+                  <>
+                    <Send className="size-4" strokeWidth={1.5} /> Send Message
+                  </>
+                )}
+              </button>
+              <p className="mt-2 flex max-w-sm items-start gap-1.5 text-xs leading-relaxed text-[var(--fg-muted)]">
+                <ArrowUp
+                  className="mt-0.5 size-3.5 shrink-0"
+                  strokeWidth={1.75}
+                  aria-hidden
+                />
+                This won&apos;t redirect you — it will send your message to me
+                automatically.
+              </p>
+            </div>
             {formError ? (
               <p role="alert" className="text-sm text-red-500">
                 {formError}
