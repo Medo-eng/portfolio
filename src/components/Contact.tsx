@@ -291,15 +291,17 @@ export function Contact() {
                 autoComplete="email"
                 className="focus-ring w-full rounded-2xl border border-[var(--border)] bg-[var(--bg)] px-4 py-3 outline-none disabled:opacity-60"
               />
-              <span className="mt-2 flex items-start gap-1.5 text-xs leading-relaxed text-[var(--fg-muted)]">
+              <p className="mt-2.5 flex items-start gap-2 rounded-xl border border-[var(--fg)]/25 bg-[var(--accent-soft)] px-3 py-2.5 text-sm font-medium leading-snug text-[var(--fg)]">
                 <ArrowUp
-                  className="mt-0.5 size-3.5 shrink-0"
-                  strokeWidth={1.75}
+                  className="mt-0.5 size-4 shrink-0 animate-bounce"
+                  strokeWidth={2.25}
                   aria-hidden
                 />
-                Make sure this is correct — this email will be the one I reply
-                to!
-              </span>
+                <span>
+                  Make sure this is correct — this email will be the one I reply
+                  to!
+                </span>
+              </p>
             </label>
             <label className="block text-sm">
               <span className="mb-1.5 block font-medium">Message</span>
@@ -333,14 +335,16 @@ export function Contact() {
                   </>
                 )}
               </button>
-              <p className="mt-2 flex max-w-sm items-start gap-1.5 text-xs leading-relaxed text-[var(--fg-muted)]">
+              <p className="mt-2.5 flex max-w-md items-start gap-2 rounded-xl border border-[var(--fg)]/25 bg-[var(--accent-soft)] px-3 py-2.5 text-sm font-medium leading-snug text-[var(--fg)]">
                 <ArrowUp
-                  className="mt-0.5 size-3.5 shrink-0"
-                  strokeWidth={1.75}
+                  className="mt-0.5 size-4 shrink-0 animate-bounce"
+                  strokeWidth={2.25}
                   aria-hidden
                 />
-                This won&apos;t redirect you — it will send your message to me
-                automatically.
+                <span>
+                  This won&apos;t redirect you — it will send your message to me
+                  automatically.
+                </span>
               </p>
             </div>
             {formError ? (
