@@ -85,6 +85,13 @@ export function Services() {
         <h2 className="font-display text-4xl font-medium tracking-tight sm:text-5xl">
           Built for conversion, priced for momentum
         </h2>
+        <motion.div
+          className="mx-auto mt-5 h-px w-16 origin-center bg-[var(--fg)]"
+          initial={{ scaleX: 0 }}
+          whileInView={{ scaleX: 1 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1], delay: 0.12 }}
+        />
       </motion.div>
 
       <div className="grid gap-4 lg:grid-cols-3">

@@ -110,3 +110,28 @@ body {
   outline: 1.5px solid var(--fg);
   outline-offset: 3px;
 }
+
+@keyframes grain-shift {
+  0% {
+    transform: translate(0, 0);
+  }
+  100% {
+    transform: translate(-2%, -2%);
+  }
+}
+
+body::before {
+  content: "";
+  pointer-events: none;
+  position: fixed;
+  inset: -20%;
+  z-index: 80;
+  opacity: 0.035;
+  background-image: radial-gradient(
+    rgba(128, 128, 128, 0.35) 0.5px,
+    transparent 0.5px
+  );
+  background-size: 3px 3px;
+  animation: grain-shift 8s steps(6) infinite;
+  mix-blend-mode: overlay;
+}

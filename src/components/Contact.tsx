@@ -53,10 +53,20 @@ export function Contact() {
         transition={spring}
         className="mb-10 max-w-2xl"
       >
-        <p className="eyebrow mb-5">Contact</p>
+        <p className="eyebrow mb-5 inline-flex items-center gap-2">
+          <Mail className="size-3.5" strokeWidth={1.5} />
+          Contact
+        </p>
         <h2 className="font-display text-4xl font-medium tracking-tight sm:text-5xl">
           Let&apos;s build something that converts
         </h2>
+        <motion.div
+          className="mt-5 h-px w-16 origin-left bg-[var(--fg)]"
+          initial={{ scaleX: 0 }}
+          whileInView={{ scaleX: 1 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1], delay: 0.12 }}
+        />
       </motion.div>
 
       <div className="grid gap-6 lg:grid-cols-2">

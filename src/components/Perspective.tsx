@@ -1,9 +1,15 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Scale } from "lucide-react";
+import { Flame, Scale, Target } from "lucide-react";
 
 const spring = { type: "spring" as const, stiffness: 380, damping: 30 };
+
+const points = [
+  { icon: Flame, text: "Obsession over age" },
+  { icon: Target, text: "Five years deep" },
+  { icon: Scale, text: "Standards over shortcuts" },
+];
 
 export function Perspective() {
   return (
@@ -34,12 +40,41 @@ export function Perspective() {
         >
           Why an 18-year-old?
         </motion.h2>
+
+        <div className="mt-8 grid gap-3 sm:grid-cols-3">
+          {points.map((p, i) => {
+            const Icon = p.icon;
+            return (
+              <motion.div
+                key={p.text}
+                initial={{ opacity: 0, y: 16 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ ...spring, delay: 0.1 + i * 0.08 }}
+                whileHover={{ y: -4 }}
+                className="rounded-2xl border border-[var(--border)] px-4 py-5 text-center"
+              >
+                <motion.span
+                  className="mx-auto flex size-9 items-center justify-center rounded-full border border-[var(--border)]"
+                  whileHover={{ rotate: -8, scale: 1.08 }}
+                  transition={spring}
+                >
+                  <Icon className="size-4" strokeWidth={1.5} />
+                </motion.span>
+                <p className="mt-3 text-xs tracking-wide text-[var(--fg-muted)]">
+                  {p.text}
+                </p>
+              </motion.div>
+            );
+          })}
+        </div>
+
         <motion.p
           className="mt-8 text-lg font-light leading-[1.85] text-[var(--fg-muted)] sm:text-xl"
           initial={{ opacity: 0, y: 18 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          transition={{ ...spring, delay: 0.16 }}
+          transition={{ ...spring, delay: 0.2 }}
         >
           Why hire an 18-year-old? History has always been shaped by those who
           didn&apos;t wait for permission. At 18, Alexander the Great commanded

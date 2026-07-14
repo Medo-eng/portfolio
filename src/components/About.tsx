@@ -1,9 +1,15 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { User } from "lucide-react";
+import { Brush, Code2, Lightbulb, User } from "lucide-react";
 
 const spring = { type: "spring" as const, stiffness: 380, damping: 30 };
+
+const traits = [
+  { icon: Brush, label: "Design-first" },
+  { icon: Code2, label: "Self-taught engineer" },
+  { icon: Lightbulb, label: "Business-minded" },
+];
 
 export function About() {
   return (
@@ -40,6 +46,27 @@ export function About() {
           viewport={{ once: true }}
           transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1], delay: 0.2 }}
         />
+
+        <div className="mt-8 flex flex-wrap gap-3">
+          {traits.map((t, i) => {
+            const Icon = t.icon;
+            return (
+              <motion.span
+                key={t.label}
+                initial={{ opacity: 0, y: 12 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ ...spring, delay: 0.1 + i * 0.08 }}
+                whileHover={{ y: -3, scale: 1.04 }}
+                className="inline-flex items-center gap-2 rounded-full border border-[var(--border)] px-3.5 py-2 text-xs tracking-wide text-[var(--fg-muted)]"
+              >
+                <Icon className="size-3.5" strokeWidth={1.5} />
+                {t.label}
+              </motion.span>
+            );
+          })}
+        </div>
+
         <motion.p
           className="mt-8 text-lg font-light leading-[1.85] text-[var(--fg-muted)] sm:text-xl"
           initial={{ opacity: 0, y: 18 }}

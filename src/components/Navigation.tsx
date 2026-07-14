@@ -5,7 +5,7 @@ import {
   Briefcase,
   FolderKanban,
   Home,
-  MessageCircle,
+  Mail,
   Moon,
   Sun,
 } from "lucide-react";
@@ -15,7 +15,7 @@ const links = [
   { href: "#home", label: "Home", icon: Home },
   { href: "#services", label: "Services", icon: Briefcase },
   { href: "#portfolio", label: "Portfolio", icon: FolderKanban },
-  { href: "#contact", label: "Contact", icon: MessageCircle },
+  { href: "#contact", label: "Contact", icon: Mail },
 ];
 
 const spring = { type: "spring" as const, stiffness: 380, damping: 30 };
@@ -25,19 +25,25 @@ export function Navigation() {
 
   return (
     <motion.nav
-      initial={{ y: -28, opacity: 0 }}
+      initial={{ y: -36, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
       transition={spring}
       className="fixed top-5 left-1/2 z-50 w-[min(94vw,660px)] -translate-x-1/2"
       aria-label="Primary"
     >
-      <div className="flex items-center justify-between gap-2 rounded-full border border-[var(--border)] bg-[var(--nav-bg)] px-3 py-2 pl-5 shadow-[var(--shadow)] backdrop-blur-xl">
-        <a
+      <motion.div
+        className="flex items-center justify-between gap-2 rounded-full border border-[var(--border)] bg-[var(--nav-bg)] px-3 py-2 pl-5 shadow-[var(--shadow)] backdrop-blur-xl"
+        whileHover={{ scale: 1.01 }}
+        transition={spring}
+      >
+        <motion.a
           href="#home"
+          whileHover={{ scale: 1.08, rotate: -3 }}
+          transition={spring}
           className="focus-ring font-display shrink-0 text-lg font-medium tracking-tight italic"
         >
           MN
-        </a>
+        </motion.a>
 
         <ul className="flex flex-1 items-center justify-center gap-0.5 sm:gap-1">
           {links.map((link, i) => {
@@ -64,8 +70,8 @@ export function Navigation() {
         <motion.button
           type="button"
           aria-label="Toggle theme"
-          whileHover={{ scale: 1.06 }}
-          whileTap={{ scale: 0.94 }}
+          whileHover={{ scale: 1.1, rotate: 12 }}
+          whileTap={{ scale: 0.9, rotate: -12 }}
           transition={spring}
           onClick={toggleTheme}
           className="focus-ring flex size-8 shrink-0 items-center justify-center rounded-full border border-[var(--border)] text-[var(--fg)]"
@@ -76,7 +82,7 @@ export function Navigation() {
             <Moon className="size-3.5" strokeWidth={1.5} />
           )}
         </motion.button>
-      </div>
+      </motion.div>
     </motion.nav>
   );
 }
