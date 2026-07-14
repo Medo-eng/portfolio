@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import { FormEvent, useEffect, useId, useRef, useState } from "react";
 import { easeOut } from "@/lib/motion";
+import { useOrderHelper } from "./OrderHelperProvider";
 
 const spring = { type: "spring" as const, stiffness: 380, damping: 30 };
 
@@ -139,6 +140,8 @@ async function sendContactMessage(payload: {
 }
 
 export function Contact() {
+  const { draft, setDraft, showSendTip, dismissSendTip, setShowSendTip } =
+    useOrderHelper();
   const [submitting, setSubmitting] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
   const [showSuccess, setShowSuccess] = useState(false);
@@ -146,6 +149,7 @@ export function Contact() {
     "instagram",
   );
   const closeBtnRef = useRef<HTMLButtonElement>(null);
+  const sendWrapRef = useRef<HTMLDivElement>(null);
   const titleId = useId();
   const descId = useId();
 
@@ -166,6 +170,11 @@ export function Contact() {
       window.removeEventListener("keydown", onKeyDown);
     };
   }, [showSuccess]);
+
+  useEffect(() => {
+    if (!showSendTip) return;
+    sendWrapRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+  }, [showSendTip]);
 
   async function submitContact(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -193,7 +202,8 @@ export function Contact() {
         return;
       }
 
-      form.reset();
+      setDraft({ name: "", email: "", message: "", packageName: "" });
+      dismissSendTip();
       setShowSuccess(true);
     } catch {
       setFormError(
@@ -277,6 +287,8 @@ export function Contact() {
                 maxLength={100}
                 disabled={submitting}
                 autoComplete="name"
+                value={draft.name}
+                onChange={(e) => setDraft({ name: e.target.value })}
                 className="focus-ring w-full rounded-2xl border border-[var(--border)] bg-[var(--bg)] px-4 py-3 outline-none disabled:opacity-60"
               />
             </label>
@@ -289,6 +301,8 @@ export function Contact() {
                 maxLength={254}
                 disabled={submitting}
                 autoComplete="email"
+                value={draft.email}
+                onChange={(e) => setDraft({ email: e.target.value })}
                 className="focus-ring w-full rounded-2xl border border-[var(--border)] bg-[var(--bg)] px-4 py-3 outline-none disabled:opacity-60"
               />
               <p className="mt-2.5 flex items-start gap-2 rounded-xl border border-[var(--fg)]/25 bg-[var(--accent-soft)] px-3 py-2.5 text-sm font-medium leading-snug text-[var(--fg)]">
@@ -312,10 +326,12 @@ export function Contact() {
                 maxLength={5000}
                 rows={4}
                 disabled={submitting}
+                value={draft.message}
+                onChange={(e) => setDraft({ message: e.target.value })}
                 className="focus-ring w-full resize-none rounded-2xl border border-[var(--border)] bg-[var(--bg)] px-4 py-3 outline-none disabled:opacity-60"
               />
             </label>
-            <div>
+            <div ref={sendWrapRef} className="relative">
               <button
                 type="submit"
                 disabled={submitting}
@@ -335,6 +351,35 @@ export function Contact() {
                   </>
                 )}
               </button>
+
+              <AnimatePresence>
+                {showSendTip ? (
+                  <motion.div
+                    initial={{ opacity: 0, y: 8, scale: 0.96 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 0, y: 6, scale: 0.97 }}
+                    transition={{ duration: 0.35, ease: easeOut }}
+                    className="relative mt-3 max-w-md rounded-2xl border border-[var(--fg)]/30 bg-[var(--bg-elevated)] p-4 shadow-[var(--shadow)]"
+                  >
+                    <span className="absolute -top-2 left-8 size-3 rotate-45 border-t border-l border-[var(--fg)]/30 bg-[var(--bg-elevated)]" />
+                    <div className="flex items-start justify-between gap-3">
+                      <p className="text-sm font-medium leading-snug text-[var(--fg)]">
+                        Have no fear! When you press on this it will send
+                        automatically. No redirects!
+                      </p>
+                      <button
+                        type="button"
+                        aria-label="Dismiss tip"
+                        onClick={() => setShowSendTip(false)}
+                        className="focus-ring inline-flex size-7 shrink-0 items-center justify-center rounded-full border border-[var(--border)] text-[var(--fg-muted)] hover:text-[var(--fg)]"
+                      >
+                        <X className="size-3.5" strokeWidth={1.5} />
+                      </button>
+                    </div>
+                  </motion.div>
+                ) : null}
+              </AnimatePresence>
+
               <p className="mt-2.5 flex max-w-md items-start gap-2 rounded-xl border border-[var(--fg)]/25 bg-[var(--accent-soft)] px-3 py-2.5 text-sm font-medium leading-snug text-[var(--fg)]">
                 <ArrowUp
                   className="mt-0.5 size-4 shrink-0 animate-bounce"

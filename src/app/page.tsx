@@ -4,6 +4,8 @@ import { About } from "@/components/About";
 import { Contact } from "@/components/Contact";
 import { Hero } from "@/components/Hero";
 import { Navigation } from "@/components/Navigation";
+import { OrderHelper } from "@/components/OrderHelper";
+import { OrderHelperProvider } from "@/components/OrderHelperProvider";
 import { Perspective } from "@/components/Perspective";
 import { Portfolio } from "@/components/Portfolio";
 import { ScrollProgress } from "@/components/ScrollProgress";
@@ -18,7 +20,7 @@ export default function Home() {
   const finishIntro = useCallback(() => setIntroDone(true), []);
 
   return (
-    <>
+    <OrderHelperProvider>
       {!introDone ? <SiteIntro onComplete={finishIntro} /> : null}
 
       <motion.div
@@ -45,7 +47,8 @@ export default function Home() {
             Systems
           </p>
         </footer>
+        <OrderHelper ready={introDone} />
       </motion.div>
-    </>
+    </OrderHelperProvider>
   );
 }
