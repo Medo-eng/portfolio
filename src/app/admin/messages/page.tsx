@@ -33,7 +33,12 @@ export default function AdminMessagesPage() {
   useEffect(() => {
     setAuthed(isAdminAuthenticated());
     refreshInbox();
-    return subscribeStorage(refreshInbox);
+    const unsubscribe = subscribeStorage(refreshInbox);
+    const poll = window.setInterval(refreshInbox, 1000);
+    return () => {
+      unsubscribe();
+      window.clearInterval(poll);
+    };
   }, []);
 
   function onLogin(e: FormEvent<HTMLFormElement>) {
@@ -183,7 +188,7 @@ export default function AdminMessagesPage() {
         {tab === "chats" ? (
           <div className="rounded-2xl border border-[var(--border)] bg-white/70 backdrop-blur-md dark:bg-black/40 grid min-h-[560px] overflow-hidden rounded-3xl lg:grid-cols-[280px_1fr]">
             <aside className="border-b border-[var(--border)] lg:border-b-0 lg:border-r">
-              <ul className="max-h-[240px] overflow-y-auto lg:max-h-none lg:h-full">
+              <ul className="max-h-[320px] overflow-y-auto lg:max-h-[560px]">
                 {threads.length === 0 ? (
                   <li className="p-4 text-sm text-[var(--fg-muted)]">
                     No chat threads yet.

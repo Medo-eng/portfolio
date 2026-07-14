@@ -11,7 +11,7 @@ import {
   Shield,
   UserRound,
 } from "lucide-react";
-import { FormEvent, useEffect, useState } from "react";
+import { FormEvent, useEffect, useRef, useState } from "react";
 import {
   addContact,
   ensureCustomerThread,
@@ -35,18 +35,25 @@ export function Contact() {
   const [draft, setDraft] = useState("");
   const [formStatus, setFormStatus] = useState<string | null>(null);
   const [chatReady, setChatReady] = useState(false);
+  const threadIdRef = useRef<string | null>(null);
+
+  function bindThread(t: ChatThread | null) {
+    threadIdRef.current = t?.id ?? null;
+    setThread(t);
+    setMessages(t ? [...t.messages] : []);
+  }
 
   useEffect(() => {
     const sync = () => {
       const id = getActiveSessionId();
-      if (!id) return;
+      // Only refresh the chat you are currently in — never snap back to an older thread
+      if (!id || !threadIdRef.current || id !== threadIdRef.current) return;
       const t = getThread(id);
       if (t) {
         setThread(t);
         setMessages([...t.messages]);
       }
     };
-    sync();
     return subscribeStorage(sync);
   }, []);
 
@@ -56,29 +63,29 @@ export function Contact() {
       chatMode === "email" && email.trim()
         ? ensureCustomerThread({ email: email.trim().toLowerCase() })
         : ensureCustomerThread({ anonymous: true, forceNew: true });
-    setThread(t);
-    setMessages([...t.messages]);
+    bindThread(t);
     setChatReady(true);
   }
 
-  function endSession() {
+  /** Opens a brand-new guest thread immediately (separate from previous chats). */
+  function startNewAnonymousChat() {
     resetCustomerSession();
-    setChatReady(false);
-    setThread(null);
-    setMessages([]);
+    const t = ensureCustomerThread({ anonymous: true, forceNew: true });
+    bindThread(t);
     setDraft("");
+    setChatMode("anon");
+    setChatReady(true);
   }
 
   function sendMessage(e: FormEvent) {
     e.preventDefault();
-    if (!thread || !draft.trim()) return;
-    sendCustomerMessage(thread.id, draft.trim());
+    const text = draft.trim();
+    const id = getActiveSessionId() || threadIdRef.current || thread?.id;
+    if (!id || !text) return;
+    sendCustomerMessage(id, text);
     setDraft("");
-    const updated = getThread(thread.id);
-    if (updated) {
-      setThread(updated);
-      setMessages([...updated.messages]);
-    }
+    const updated = getThread(id);
+    if (updated) bindThread(updated);
   }
 
   function submitContact(e: FormEvent<HTMLFormElement>) {
@@ -102,9 +109,7 @@ export function Contact() {
         transition={spring}
         className="mb-10 max-w-2xl"
       >
-        <p className="eyebrow mb-5">
-          Contact & Live Chat
-        </p>
+        <p className="eyebrow mb-5">Contact & Live Chat</p>
         <h2 className="font-display text-4xl font-medium tracking-tight sm:text-5xl">
           Let&apos;s build something that converts
         </h2>
@@ -193,7 +198,10 @@ export function Contact() {
             </form>
           </div>
           <div className="flex flex-col justify-center rounded-2xl border border-[var(--border)] bg-transparent p-6">
-            <CheckCircle2 className="size-7 text-[var(--fg)]" strokeWidth={1.5} />
+            <CheckCircle2
+              className="size-7 text-[var(--fg)]"
+              strokeWidth={1.5}
+            />
             <h4 className="mt-4 font-display text-lg font-medium">
               What happens next
             </h4>
@@ -219,7 +227,8 @@ export function Contact() {
               </h3>
               <p className="text-sm text-[var(--fg-muted)]">
                 Quick sign-up with email, or stay completely anonymous with a
-                temporary session ID.
+                temporary session ID. Each anonymous Open Chat creates a new
+                thread in the admin board.
               </p>
               <div className="flex flex-wrap gap-2">
                 <button
@@ -268,16 +277,14 @@ export function Contact() {
             <div className="flex h-[420px] flex-col">
               <div className="flex items-center justify-between border-b border-[var(--border)] px-5 py-4">
                 <div>
-                  <p className="font-display font-medium">
-                    Live Chat
-                  </p>
+                  <p className="font-display font-medium">Live Chat</p>
                   <p className="text-xs text-[var(--fg-muted)]">
                     {thread?.label}
                   </p>
                 </div>
                 <button
                   type="button"
-                  onClick={endSession}
+                  onClick={startNewAnonymousChat}
                   className="focus-ring text-xs font-medium text-[var(--fg-muted)] hover:text-[var(--fg)]"
                 >
                   New chat
@@ -287,7 +294,8 @@ export function Contact() {
                 {messages.length === 0 ? (
                   <p className="text-sm text-[var(--fg-muted)]">
                     Say hello — Mohamed can reply from the admin panel in
-                    real-time.
+                    real-time. Watch the guest ID change when you press New
+                    chat.
                   </p>
                 ) : (
                   messages.map((m) => (
