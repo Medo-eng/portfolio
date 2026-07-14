@@ -30,22 +30,26 @@ export default function Home() {
         <ScrollProgress />
         <Navigation ready={introDone} />
         <main>
-          <SectionShell id="home">
+          <SectionShell id="home" title="Home" enabled={introDone} quiet>
             <Hero ready={introDone} />
           </SectionShell>
-          <SectionShell id="about">
+          <SectionShell id="about" title="About" enabled={introDone}>
             <About />
           </SectionShell>
-          <SectionShell id="perspective">
+          <SectionShell
+            id="perspective"
+            title="Perspective"
+            enabled={introDone}
+          >
             <Perspective />
           </SectionShell>
-          <SectionShell id="services">
+          <SectionShell id="services" title="Services" enabled={introDone}>
             <Services />
           </SectionShell>
-          <SectionShell id="portfolio">
+          <SectionShell id="portfolio" title="Portfolio" enabled={introDone}>
             <Portfolio />
           </SectionShell>
-          <SectionShell id="contact">
+          <SectionShell id="contact" title="Contact" enabled={introDone}>
             <Contact />
           </SectionShell>
         </main>

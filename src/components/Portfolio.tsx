@@ -63,7 +63,7 @@ const otherProjects: Project[] = [
     blurb:
       "High-converting roofing landing page for local lead capture, trust, and mobile-first speed.",
     url: "https://apex-roofing-git-v0-medo-eng-133956ad-medo-engs-projects.vercel.app/",
-    image: "",
+    image: "/apex roofing.png",
     icon: Home,
   },
 ];
@@ -174,7 +174,7 @@ export function Portfolio() {
               {active.image ? (
                 <div className="relative h-40 overflow-hidden border-b border-[var(--border)]">
                   <Image
-                    src={active.image}
+                    src={encodeURI(active.image)}
                     alt={active.title}
                     fill
                     className="object-cover"
@@ -309,7 +309,7 @@ function ProjectCard({
             transition={{ type: "spring", stiffness: 260, damping: 28 }}
           >
             <Image
-              src={project.image}
+              src={encodeURI(project.image)}
               alt={project.title}
               fill
               className="object-cover"

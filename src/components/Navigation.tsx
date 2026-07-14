@@ -8,6 +8,7 @@ import {
   Mail,
   Moon,
   Sun,
+  User,
 } from "lucide-react";
 import { easeOut } from "@/lib/motion";
 import { triggerSectionIntro } from "./SectionShell";
@@ -15,6 +16,7 @@ import { useTheme } from "./ThemeProvider";
 
 const links = [
   { href: "#home", id: "home", label: "Home", icon: Home },
+  { href: "#about", id: "about", label: "About", icon: User },
   { href: "#services", id: "services", label: "Services", icon: Briefcase },
   { href: "#portfolio", id: "portfolio", label: "Portfolio", icon: FolderKanban },
   { href: "#contact", id: "contact", label: "Contact", icon: Mail },
@@ -23,9 +25,9 @@ const links = [
 function goToSection(id: string) {
   const el = document.getElementById(id);
   if (!el) return;
-  el.scrollIntoView({ behavior: "smooth", block: "start" });
-  // Let scroll settle, then play section intro
-  window.setTimeout(() => triggerSectionIntro(id), 280);
+  // Jump under the blank intro, then play the section splash
+  el.scrollIntoView({ behavior: "auto", block: "start" });
+  triggerSectionIntro(id);
 }
 
 export function Navigation({ ready = true }: { ready?: boolean }) {
@@ -36,7 +38,7 @@ export function Navigation({ ready = true }: { ready?: boolean }) {
       initial={{ y: -28, opacity: 0 }}
       animate={ready ? { y: 0, opacity: 1 } : { y: -28, opacity: 0 }}
       transition={{ duration: 0.45, ease: easeOut }}
-      className="fixed top-5 left-1/2 z-50 w-[min(94vw,660px)] -translate-x-1/2"
+      className="fixed top-5 left-1/2 z-50 w-[min(96vw,720px)] -translate-x-1/2"
       aria-label="Primary"
     >
       <div className="flex items-center justify-between gap-2 rounded-full border border-[var(--border)] bg-[var(--nav-bg)] px-3 py-2 pl-5 shadow-[var(--shadow)] backdrop-blur-xl">
