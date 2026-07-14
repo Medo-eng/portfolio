@@ -15,8 +15,9 @@ import { FormEvent, useEffect, useState } from "react";
 import {
   addContact,
   ensureCustomerThread,
-  getOrCreateSessionId,
+  getActiveSessionId,
   getThread,
+  resetCustomerSession,
   sendCustomerMessage,
   subscribeStorage,
   type ChatMessage,
@@ -36,15 +37,13 @@ export function Contact() {
   const [chatReady, setChatReady] = useState(false);
 
   useEffect(() => {
-    getOrCreateSessionId();
     const sync = () => {
-      const id = localStorage.getItem("mn-chat-session-id");
+      const id = getActiveSessionId();
       if (!id) return;
       const t = getThread(id);
       if (t) {
         setThread(t);
         setMessages([...t.messages]);
-        setChatReady(true);
       }
     };
     sync();
@@ -56,10 +55,18 @@ export function Contact() {
     const t =
       chatMode === "email" && email.trim()
         ? ensureCustomerThread({ email: email.trim().toLowerCase() })
-        : ensureCustomerThread({ anonymous: true });
+        : ensureCustomerThread({ anonymous: true, forceNew: true });
     setThread(t);
     setMessages([...t.messages]);
     setChatReady(true);
+  }
+
+  function endSession() {
+    resetCustomerSession();
+    setChatReady(false);
+    setThread(null);
+    setMessages([]);
+    setDraft("");
   }
 
   function sendMessage(e: FormEvent) {
@@ -270,14 +277,10 @@ export function Contact() {
                 </div>
                 <button
                   type="button"
-                  onClick={() => {
-                    setChatReady(false);
-                    setThread(null);
-                    setMessages([]);
-                  }}
+                  onClick={endSession}
                   className="focus-ring text-xs font-medium text-[var(--fg-muted)] hover:text-[var(--fg)]"
                 >
-                  Reset session
+                  New chat
                 </button>
               </div>
               <div className="flex-1 space-y-3 overflow-y-auto px-5 py-4">

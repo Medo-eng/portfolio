@@ -31,7 +31,7 @@ export default function RootLayout({
     <html
       lang="en"
       suppressHydrationWarning
-      className={`${display.variable} ${body.variable} h-full antialiased`}
+      className={`${display.variable} ${body.variable} dark h-full antialiased`}
     >
       <body className="min-h-full font-[family-name:var(--font-body)] text-[var(--fg)]">
         <ThemeProvider>{children}</ThemeProvider>

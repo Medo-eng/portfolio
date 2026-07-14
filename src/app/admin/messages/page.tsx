@@ -3,7 +3,7 @@
 import { FormEvent, useEffect, useState } from "react";
 import {
   getContacts,
-  getThreads,
+  getVisibleThreads,
   isAdminAuthenticated,
   loginAdmin,
   logoutAdmin,
@@ -13,7 +13,7 @@ import {
   type ChatThread,
   type ContactSubmission,
 } from "@/lib/chat-store";
-import { LogOut, MessageSquare, Inbox } from "lucide-react";
+import { LogOut, MessageSquare, Inbox, RefreshCw } from "lucide-react";
 import Link from "next/link";
 
 export default function AdminMessagesPage() {
@@ -25,14 +25,15 @@ export default function AdminMessagesPage() {
   const [draft, setDraft] = useState("");
   const [tab, setTab] = useState<"chats" | "contacts">("chats");
 
+  function refreshInbox() {
+    setThreads(getVisibleThreads());
+    setContacts(getContacts());
+  }
+
   useEffect(() => {
     setAuthed(isAdminAuthenticated());
-    const sync = () => {
-      setThreads(getThreads());
-      setContacts(getContacts());
-    };
-    sync();
-    return subscribeStorage(sync);
+    refreshInbox();
+    return subscribeStorage(refreshInbox);
   }, []);
 
   function onLogin(e: FormEvent<HTMLFormElement>) {
@@ -43,8 +44,7 @@ export default function AdminMessagesPage() {
     if (loginAdmin(email, password)) {
       setAuthed(true);
       setError(null);
-      setThreads(getThreads());
-      setContacts(getContacts());
+      refreshInbox();
     } else {
       setError("Invalid credentials.");
     }
@@ -58,7 +58,7 @@ export default function AdminMessagesPage() {
     sendAdminMessage(active.id, draft.trim());
     markThreadRead(active.id);
     setDraft("");
-    setThreads(getThreads());
+    refreshInbox();
   }
 
   if (!authed) {
@@ -137,6 +137,13 @@ export default function AdminMessagesPage() {
             </Link>
             <button
               type="button"
+              onClick={refreshInbox}
+              className="focus-ring inline-flex items-center gap-2 rounded-full border border-[var(--border)] px-4 py-2 text-sm font-medium"
+            >
+              <RefreshCw className="size-4" /> Refresh
+            </button>
+            <button
+              type="button"
               onClick={() => {
                 logoutAdmin();
                 setAuthed(false);
@@ -182,31 +189,41 @@ export default function AdminMessagesPage() {
                     No chat threads yet.
                   </li>
                 ) : (
-                  threads.map((t) => (
-                    <li key={t.id}>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setActiveId(t.id);
-                          markThreadRead(t.id);
-                          setThreads(getThreads());
-                        }}
-                        className={`flex w-full flex-col gap-0.5 border-b border-[var(--border)] px-4 py-3 text-left transition hover:bg-[var(--bg-muted)] ${
-                          activeId === t.id ? "bg-[var(--bg-muted)]" : ""
-                        }`}
-                      >
-                        <span className="flex items-center justify-between gap-2 text-sm font-semibold">
-                          {t.label}
-                          {t.unreadForAdmin ? (
-                            <span className="size-2 rounded-full bg-[var(--fg)]" />
+                  threads.map((t) => {
+                    const preview = t.messages[t.messages.length - 1]?.text ?? "";
+                    return (
+                      <li key={t.id}>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setActiveId(t.id);
+                            markThreadRead(t.id);
+                            refreshInbox();
+                          }}
+                          className={`flex w-full flex-col gap-0.5 border-b border-[var(--border)] px-4 py-3 text-left transition hover:bg-[var(--bg-muted)] ${
+                            activeId === t.id ? "bg-[var(--bg-muted)]" : ""
+                          }`}
+                        >
+                          <span className="flex items-center justify-between gap-2 text-sm font-semibold">
+                            {t.label}
+                            {t.unreadForAdmin ? (
+                              <span className="size-2 shrink-0 rounded-full bg-[var(--fg)]" />
+                            ) : null}
+                          </span>
+                          <span className="text-xs capitalize text-[var(--fg-muted)]">
+                            {t.type === "email" ? "Email" : "Anonymous Guest"} ·{" "}
+                            {t.messages.length} msg
+                            {t.messages.length === 1 ? "" : "s"}
+                          </span>
+                          {preview ? (
+                            <span className="truncate text-xs text-[var(--fg-muted)]">
+                              {preview}
+                            </span>
                           ) : null}
-                        </span>
-                        <span className="text-xs capitalize text-[var(--fg-muted)]">
-                          {t.type === "email" ? "Email" : "Anonymous Guest"}
-                        </span>
-                      </button>
-                    </li>
-                  ))
+                        </button>
+                      </li>
+                    );
+                  })
                 )}
               </ul>
             </aside>

@@ -52,20 +52,30 @@ function writeJSON<T>(key: string, value: T) {
   window.dispatchEvent(new CustomEvent("mn-storage", { detail: { key } }));
 }
 
-export function getOrCreateSessionId(): string {
-  if (typeof window === "undefined") return "";
-  let id = localStorage.getItem(SESSION_KEY);
-  if (!id) {
-    id = uid("guest");
-    localStorage.setItem(SESSION_KEY, id);
-  }
-  return id;
+export function getActiveSessionId(): string | null {
+  if (typeof window === "undefined") return null;
+  return localStorage.getItem(SESSION_KEY);
+}
+
+export function setActiveSessionId(id: string) {
+  localStorage.setItem(SESSION_KEY, id);
+}
+
+/** Ends the customer chat session so the next Open Chat starts a new thread. */
+export function resetCustomerSession() {
+  if (typeof window === "undefined") return;
+  localStorage.removeItem(SESSION_KEY);
 }
 
 export function getThreads(): ChatThread[] {
   return readJSON<ChatThread[]>(THREADS_KEY, []).sort(
     (a, b) => b.updatedAt - a.updatedAt,
   );
+}
+
+/** Admin list: every thread that has at least one message. */
+export function getVisibleThreads(): ChatThread[] {
+  return getThreads().filter((t) => t.messages.length > 0);
 }
 
 export function getThread(id: string): ChatThread | undefined {
@@ -78,44 +88,68 @@ export function upsertThread(thread: ChatThread) {
   writeJSON(THREADS_KEY, threads);
 }
 
-export function ensureCustomerThread(opts: {
-  email?: string;
-  anonymous?: boolean;
-}): ChatThread {
-  const threads = getThreads();
-  if (opts.email) {
-    const existing = threads.find(
-      (t) => t.type === "email" && t.email === opts.email,
-    );
-    if (existing) return existing;
-    const thread: ChatThread = {
-      id: uid("email"),
-      type: "email",
-      label: opts.email,
-      email: opts.email,
-      messages: [],
-      updatedAt: Date.now(),
-      unreadForAdmin: false,
-    };
-    upsertThread(thread);
-    localStorage.setItem(SESSION_KEY, thread.id);
-    return thread;
-  }
-
-  const sessionId = getOrCreateSessionId();
-  const existing = threads.find((t) => t.id === sessionId);
-  if (existing) return existing;
-
+function createAnonymousThread(): ChatThread {
+  const id = uid("guest");
   const thread: ChatThread = {
-    id: sessionId,
+    id,
     type: "anonymous",
-    label: `Guest ${sessionId.slice(-6).toUpperCase()}`,
+    label: `Guest ${id.slice(-6).toUpperCase()}`,
     messages: [],
     updatedAt: Date.now(),
     unreadForAdmin: false,
   };
   upsertThread(thread);
+  setActiveSessionId(id);
   return thread;
+}
+
+/**
+ * Opens or resumes a customer chat.
+ * - Email: one thread per email address (resumes if same email).
+ * - Anonymous: resumes only an existing *anonymous* active session;
+ *   otherwise always creates a brand-new guest thread.
+ * - forceNew: always create a new anonymous thread (used by "New chat").
+ */
+export function ensureCustomerThread(opts: {
+  email?: string;
+  anonymous?: boolean;
+  forceNew?: boolean;
+}): ChatThread {
+  if (opts.email) {
+    const email = opts.email.trim().toLowerCase();
+    const existing = getThreads().find(
+      (t) => t.type === "email" && t.email === email,
+    );
+    if (existing) {
+      setActiveSessionId(existing.id);
+      return existing;
+    }
+    const thread: ChatThread = {
+      id: uid("email"),
+      type: "email",
+      label: email,
+      email,
+      messages: [],
+      updatedAt: Date.now(),
+      unreadForAdmin: false,
+    };
+    upsertThread(thread);
+    setActiveSessionId(thread.id);
+    return thread;
+  }
+
+  if (opts.forceNew) {
+    return createAnonymousThread();
+  }
+
+  const sessionId = getActiveSessionId();
+  if (sessionId) {
+    const existing = getThread(sessionId);
+    // Only resume if this session is still an anonymous guest thread
+    if (existing?.type === "anonymous") return existing;
+  }
+
+  return createAnonymousThread();
 }
 
 export function sendCustomerMessage(threadId: string, text: string) {
