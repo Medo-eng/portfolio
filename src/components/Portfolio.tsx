@@ -88,35 +88,19 @@ export function Portfolio() {
 
   return (
     <section id="portfolio" className="section-pad mx-auto max-w-7xl">
-      <motion.div
-        initial={{ opacity: 0, y: 28 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: true, margin: "-80px" }}
-        transition={spring}
-        className="mb-14 max-w-2xl"
-      >
-        <motion.p
-          className="eyebrow mb-5 inline-flex items-center gap-2"
-          initial={{ opacity: 0, x: -14 }}
-          whileInView={{ opacity: 1, x: 0 }}
-          viewport={{ once: true }}
-          transition={spring}
-        >
+      <div className="mb-14 max-w-2xl">
+        <p className="eyebrow mb-5 inline-flex items-center gap-2">
           <LayoutTemplate className="size-3.5" strokeWidth={1.5} />
           Portfolio Showcase
-        </motion.p>
+        </p>
         <h2 className="font-display text-4xl font-medium tracking-tight sm:text-5xl">
           Live work, ready to explore
         </h2>
-        <motion.div
+        <div
           className="mt-5 h-px origin-left bg-[var(--fg)]"
-          initial={{ scaleX: 0 }}
-          whileInView={{ scaleX: 1 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1], delay: 0.15 }}
           style={{ width: "4.5rem" }}
         />
-      </motion.div>
+      </div>
 
       {/* Project: Intro */}
       <div className="mb-16">

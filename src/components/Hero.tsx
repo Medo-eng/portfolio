@@ -15,18 +15,19 @@ import {
   Zap,
 } from "lucide-react";
 import { useRef, type MouseEvent } from "react";
+import { easeOut } from "@/lib/motion";
+import { triggerSectionIntro } from "./SectionShell";
 
-const springCfg = { stiffness: 160, damping: 24, mass: 0.55 };
-const bounce = { type: "spring" as const, stiffness: 380, damping: 30 };
+const springCfg = { stiffness: 180, damping: 26, mass: 0.5 };
 
 const floatIcons = [
   { Icon: Code2, className: "left-[8%] top-[28%]", delay: 0 },
-  { Icon: PenTool, className: "right-[10%] top-[32%]", delay: 0.2 },
-  { Icon: Zap, className: "left-[14%] bottom-[22%]", delay: 0.35 },
-  { Icon: Sparkles, className: "right-[12%] bottom-[26%]", delay: 0.5 },
+  { Icon: PenTool, className: "right-[10%] top-[32%]", delay: 0.08 },
+  { Icon: Zap, className: "left-[14%] bottom-[22%]", delay: 0.14 },
+  { Icon: Sparkles, className: "right-[12%] bottom-[26%]", delay: 0.2 },
 ];
 
-export function Hero() {
+export function Hero({ ready = true }: { ready?: boolean }) {
   const ref = useRef<HTMLElement>(null);
   const mx = useMotionValue(0);
   const my = useMotionValue(0);
@@ -66,16 +67,17 @@ export function Hero() {
         <motion.div
           key={className}
           className={`pointer-events-none absolute hidden text-[var(--fg)]/15 sm:block ${className}`}
-          initial={{ opacity: 0, y: 20 }}
-          animate={{
-            opacity: 1,
-            y: [0, -10, 0],
-          }}
+          initial={{ opacity: 0 }}
+          animate={
+            ready
+              ? { opacity: 1, y: [0, -8, 0] }
+              : { opacity: 0 }
+          }
           transition={{
-            opacity: { delay: delay + 0.6, duration: 0.6 },
+            opacity: { delay: delay + 0.15, duration: 0.4, ease: easeOut },
             y: {
-              delay: delay + 0.8,
-              duration: 4 + delay,
+              delay: delay + 0.3,
+              duration: 3.6,
               repeat: Infinity,
               ease: "easeInOut",
             },
@@ -89,16 +91,16 @@ export function Hero() {
       <motion.div
         className="pointer-events-none absolute inset-x-0 top-1/3 h-px bg-[var(--border)]"
         initial={{ scaleX: 0, opacity: 0 }}
-        animate={{ scaleX: 1, opacity: 1 }}
-        transition={{ duration: 1.1, ease: [0.22, 1, 0.36, 1], delay: 0.5 }}
+        animate={ready ? { scaleX: 1, opacity: 1 } : { scaleX: 0, opacity: 0 }}
+        transition={{ duration: 0.7, ease: easeOut, delay: 0.1 }}
         aria-hidden
       />
 
       <div className="section-pad relative z-10 mx-auto flex w-full max-w-6xl flex-col items-center text-center">
         <motion.p
           initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ ...bounce, delay: 0.1 }}
+          animate={ready ? { opacity: 1, y: 0 } : { opacity: 0, y: 12 }}
+          transition={{ duration: 0.4, ease: easeOut, delay: 0.05 }}
           className="eyebrow mb-10 inline-flex items-center gap-2"
         >
           <Sparkles className="size-3.5" strokeWidth={1.5} />
@@ -128,18 +130,18 @@ export function Hero() {
             style={{ x: solidX, y: solidY }}
           >
             <motion.span
-              className="block"
-              initial={{ opacity: 0, y: 40, filter: "blur(8px)" }}
-              animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
-              transition={{ ...bounce, delay: 0.18 }}
+              className="block overflow-hidden"
+              initial={{ opacity: 0, y: 28 }}
+              animate={ready ? { opacity: 1, y: 0 } : { opacity: 0, y: 28 }}
+              transition={{ duration: 0.5, ease: easeOut, delay: 0.08 }}
             >
               Mohamed
             </motion.span>
             <motion.span
-              className="block italic font-normal"
-              initial={{ opacity: 0, y: 40, filter: "blur(8px)" }}
-              animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
-              transition={{ ...bounce, delay: 0.3 }}
+              className="block overflow-hidden italic font-normal"
+              initial={{ opacity: 0, y: 28 }}
+              animate={ready ? { opacity: 1, y: 0 } : { opacity: 0, y: 28 }}
+              transition={{ duration: 0.5, ease: easeOut, delay: 0.16 }}
             >
               Naser
             </motion.span>
@@ -147,30 +149,38 @@ export function Hero() {
         </motion.div>
 
         <motion.p
-          initial={{ opacity: 0, y: 18 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ ...bounce, delay: 0.42 }}
+          initial={{ opacity: 0, y: 14 }}
+          animate={ready ? { opacity: 1, y: 0 } : { opacity: 0, y: 14 }}
+          transition={{ duration: 0.4, ease: easeOut, delay: 0.24 }}
           className="mt-10 max-w-md text-base font-light leading-relaxed text-[var(--fg-muted)] sm:text-lg"
         >
           Crafting High-Converting Digital Systems.
         </motion.p>
 
         <motion.div
-          initial={{ opacity: 0, y: 16 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ ...bounce, delay: 0.52 }}
+          initial={{ opacity: 0, y: 12 }}
+          animate={ready ? { opacity: 1, y: 0 } : { opacity: 0, y: 12 }}
+          transition={{ duration: 0.4, ease: easeOut, delay: 0.32 }}
           className="mt-12 flex flex-wrap items-center justify-center gap-4"
         >
           <motion.a
             href="#contact"
-            whileHover={{ scale: 1.05, y: -3 }}
-            whileTap={{ scale: 0.96 }}
-            transition={bounce}
+            onClick={(e) => {
+              e.preventDefault();
+              document.getElementById("contact")?.scrollIntoView({
+                behavior: "smooth",
+                block: "start",
+              });
+              window.setTimeout(() => triggerSectionIntro("contact"), 280);
+            }}
+            whileHover={{ y: -2 }}
+            whileTap={{ scale: 0.97 }}
+            transition={{ duration: 0.2, ease: easeOut }}
             className="focus-ring inline-flex items-center gap-2 rounded-full bg-[var(--fg)] px-8 py-3.5 text-xs font-medium tracking-[0.14em] uppercase text-[var(--bg)]"
           >
             Start a Project
             <motion.span
-              animate={{ x: [0, 4, 0] }}
+              animate={{ x: [0, 3, 0] }}
               transition={{ duration: 1.6, repeat: Infinity, ease: "easeInOut" }}
             >
               <ArrowRight className="size-3.5" strokeWidth={1.5} />
@@ -178,9 +188,17 @@ export function Hero() {
           </motion.a>
           <motion.a
             href="#portfolio"
-            whileHover={{ scale: 1.05, y: -3 }}
-            whileTap={{ scale: 0.96 }}
-            transition={bounce}
+            onClick={(e) => {
+              e.preventDefault();
+              document.getElementById("portfolio")?.scrollIntoView({
+                behavior: "smooth",
+                block: "start",
+              });
+              window.setTimeout(() => triggerSectionIntro("portfolio"), 280);
+            }}
+            whileHover={{ y: -2 }}
+            whileTap={{ scale: 0.97 }}
+            transition={{ duration: 0.2, ease: easeOut }}
             className="focus-ring inline-flex items-center gap-2 rounded-full border border-[var(--border)] px-8 py-3.5 text-xs font-medium tracking-[0.14em] uppercase text-[var(--fg)] hover:border-[var(--fg)]"
           >
             <Sparkles className="size-3.5" strokeWidth={1.5} />
@@ -190,15 +208,23 @@ export function Hero() {
 
         <motion.a
           href="#about"
+          onClick={(e) => {
+            e.preventDefault();
+            document.getElementById("about")?.scrollIntoView({
+              behavior: "smooth",
+              block: "start",
+            });
+            window.setTimeout(() => triggerSectionIntro("about"), 280);
+          }}
           className="mt-16 flex flex-col items-center gap-2 text-[var(--fg-muted)]"
           initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 1 }}
+          animate={ready ? { opacity: 1 } : { opacity: 0 }}
+          transition={{ delay: 0.5, duration: 0.35, ease: easeOut }}
         >
           <span className="text-[10px] tracking-[0.2em] uppercase">Scroll</span>
           <motion.span
-            animate={{ y: [0, 6, 0] }}
-            transition={{ duration: 1.6, repeat: Infinity, ease: "easeInOut" }}
+            animate={{ y: [0, 5, 0] }}
+            transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
           >
             <ArrowDown className="size-4" strokeWidth={1.5} />
           </motion.span>

@@ -71,13 +71,7 @@ const packages: {
 export function Services() {
   return (
     <section id="services" className="section-pad mx-auto max-w-7xl">
-      <motion.div
-        initial={{ opacity: 0, y: 24 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: true, margin: "-80px" }}
-        transition={spring}
-        className="mx-auto mb-14 max-w-2xl text-center"
-      >
+      <div className="mx-auto mb-14 max-w-2xl text-center">
         <p className="eyebrow mb-5 inline-flex items-center justify-center gap-2">
           <Sparkles className="size-3.5" strokeWidth={1.5} />
           Services & Packages
@@ -85,14 +79,8 @@ export function Services() {
         <h2 className="font-display text-4xl font-medium tracking-tight sm:text-5xl">
           Built for conversion, priced for momentum
         </h2>
-        <motion.div
-          className="mx-auto mt-5 h-px w-16 origin-center bg-[var(--fg)]"
-          initial={{ scaleX: 0 }}
-          whileInView={{ scaleX: 1 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1], delay: 0.12 }}
-        />
-      </motion.div>
+        <div className="mx-auto mt-5 h-px w-16 bg-[var(--fg)]" />
+      </div>
 
       <div className="grid gap-4 lg:grid-cols-3">
         {packages.map((pkg, i) => {
@@ -100,11 +88,11 @@ export function Services() {
           return (
             <motion.article
               key={pkg.name}
-              initial={{ opacity: 0, y: 40 }}
+              initial={{ opacity: 0, y: 24 }}
               whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: "-40px" }}
-              transition={{ ...spring, delay: i * 0.1 }}
-              whileHover={{ y: -10, scale: 1.015 }}
+              viewport={{ once: false, amount: 0.25 }}
+              transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1], delay: i * 0.06 }}
+              whileHover={{ y: -6 }}
               className={`flex flex-col rounded-2xl border bg-transparent p-7 ${
                 pkg.featured
                   ? "border-[var(--fg)]"

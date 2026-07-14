@@ -9,54 +9,65 @@ import {
   Moon,
   Sun,
 } from "lucide-react";
+import { easeOut } from "@/lib/motion";
+import { triggerSectionIntro } from "./SectionShell";
 import { useTheme } from "./ThemeProvider";
 
 const links = [
-  { href: "#home", label: "Home", icon: Home },
-  { href: "#services", label: "Services", icon: Briefcase },
-  { href: "#portfolio", label: "Portfolio", icon: FolderKanban },
-  { href: "#contact", label: "Contact", icon: Mail },
+  { href: "#home", id: "home", label: "Home", icon: Home },
+  { href: "#services", id: "services", label: "Services", icon: Briefcase },
+  { href: "#portfolio", id: "portfolio", label: "Portfolio", icon: FolderKanban },
+  { href: "#contact", id: "contact", label: "Contact", icon: Mail },
 ];
 
-const spring = { type: "spring" as const, stiffness: 380, damping: 30 };
+function goToSection(id: string) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.scrollIntoView({ behavior: "smooth", block: "start" });
+  // Let scroll settle, then play section intro
+  window.setTimeout(() => triggerSectionIntro(id), 280);
+}
 
-export function Navigation() {
+export function Navigation({ ready = true }: { ready?: boolean }) {
   const { theme, toggleTheme } = useTheme();
 
   return (
     <motion.nav
-      initial={{ y: -36, opacity: 0 }}
-      animate={{ y: 0, opacity: 1 }}
-      transition={spring}
+      initial={{ y: -28, opacity: 0 }}
+      animate={ready ? { y: 0, opacity: 1 } : { y: -28, opacity: 0 }}
+      transition={{ duration: 0.45, ease: easeOut }}
       className="fixed top-5 left-1/2 z-50 w-[min(94vw,660px)] -translate-x-1/2"
       aria-label="Primary"
     >
-      <motion.div
-        className="flex items-center justify-between gap-2 rounded-full border border-[var(--border)] bg-[var(--nav-bg)] px-3 py-2 pl-5 shadow-[var(--shadow)] backdrop-blur-xl"
-        whileHover={{ scale: 1.01 }}
-        transition={spring}
-      >
+      <div className="flex items-center justify-between gap-2 rounded-full border border-[var(--border)] bg-[var(--nav-bg)] px-3 py-2 pl-5 shadow-[var(--shadow)] backdrop-blur-xl">
         <motion.a
           href="#home"
-          whileHover={{ scale: 1.08, rotate: -3 }}
-          transition={spring}
+          onClick={(e) => {
+            e.preventDefault();
+            goToSection("home");
+          }}
+          whileHover={{ scale: 1.06 }}
+          whileTap={{ scale: 0.96 }}
+          transition={{ duration: 0.25, ease: easeOut }}
           className="focus-ring font-display shrink-0 text-lg font-medium tracking-tight italic"
         >
           MN
         </motion.a>
 
         <ul className="flex flex-1 items-center justify-center gap-0.5 sm:gap-1">
-          {links.map((link, i) => {
+          {links.map((link) => {
             const Icon = link.icon;
             return (
               <li key={link.href}>
                 <motion.a
                   href={link.href}
-                  initial={{ opacity: 0, y: -8 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ ...spring, delay: 0.08 + i * 0.05 }}
-                  whileHover={{ y: -3, scale: 1.06 }}
-                  whileTap={{ scale: 0.94 }}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    goToSection(link.id);
+                  }}
+                  whileHover={{ y: -2 }}
+                  whileTap={{ scale: 0.96 }}
+                  transition={{ duration: 0.2, ease: easeOut }}
                   className="focus-ring flex items-center gap-1.5 rounded-full px-2.5 py-2 text-[11px] font-medium tracking-[0.08em] uppercase text-[var(--fg-muted)] transition-colors hover:text-[var(--fg)] sm:px-3"
                 >
                   <Icon className="hidden size-3 sm:block" strokeWidth={1.5} />
@@ -70,9 +81,9 @@ export function Navigation() {
         <motion.button
           type="button"
           aria-label="Toggle theme"
-          whileHover={{ scale: 1.1, rotate: 12 }}
-          whileTap={{ scale: 0.9, rotate: -12 }}
-          transition={spring}
+          whileHover={{ scale: 1.08 }}
+          whileTap={{ scale: 0.92 }}
+          transition={{ duration: 0.2, ease: easeOut }}
           onClick={toggleTheme}
           className="focus-ring flex size-8 shrink-0 items-center justify-center rounded-full border border-[var(--border)] text-[var(--fg)]"
         >
@@ -82,7 +93,7 @@ export function Navigation() {
             <Moon className="size-3.5" strokeWidth={1.5} />
           )}
         </motion.button>
-      </motion.div>
+      </div>
     </motion.nav>
   );
 }
