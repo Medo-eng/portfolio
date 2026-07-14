@@ -1,15 +1,18 @@
 "use client";
 
-import { motion } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import {
   CheckCircle2,
   ExternalLink,
   Facebook,
   Instagram,
+  Loader2,
   Mail,
   Send,
+  X,
 } from "lucide-react";
-import { FormEvent, useState } from "react";
+import { FormEvent, useEffect, useId, useRef, useState } from "react";
+import { easeOut } from "@/lib/motion";
 
 const spring = { type: "spring" as const, stiffness: 380, damping: 30 };
 
@@ -18,27 +21,186 @@ const SOCIAL = {
   facebook: "https://www.facebook.com/profile.php?id=61591897081085",
 } as const;
 
+const SUCCESS_COPY =
+  "Email sent successfully. Please wait about 1 to 2 hours for a reply. If it takes longer please check your spam/junk folder.";
+
+const CONTACT_INBOX = "medodakhly11@gmail.com";
+
+type ApiResponse = {
+  ok?: boolean;
+  error?: string;
+  id?: string;
+};
+
+type SendResult = { ok: true } | { ok: false; error: string };
+
+async function sendViaResend(payload: {
+  name: string;
+  email: string;
+  message: string;
+  website: string;
+}): Promise<SendResult | "unconfigured"> {
+  const res = await fetch("/api/contact", {
+    method: "POST",
+    headers: { "Content-Type": "application/json", Accept: "application/json" },
+    body: JSON.stringify(payload),
+  });
+
+  let data: ApiResponse = {};
+  try {
+    data = (await res.json()) as ApiResponse;
+  } catch {
+    data = {};
+  }
+
+  if (res.status === 503) return "unconfigured";
+
+  if (!res.ok || !data.ok) {
+    return {
+      ok: false,
+      error:
+        data.error ||
+        "Could not send your message. Please try again in a moment.",
+    };
+  }
+
+  return { ok: true };
+}
+
+async function sendViaFormSubmit(payload: {
+  name: string;
+  email: string;
+  message: string;
+}): Promise<SendResult> {
+  const res = await fetch(
+    `https://formsubmit.co/ajax/${encodeURIComponent(CONTACT_INBOX)}`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+      },
+      body: JSON.stringify({
+        name: payload.name,
+        email: payload.email,
+        message: payload.message,
+        _subject: `Portfolio inquiry from ${payload.name}`,
+        _replyto: payload.email,
+        _template: "table",
+        _captcha: false,
+      }),
+    },
+  );
+
+  let data: { success?: boolean | string; message?: string } = {};
+  try {
+    data = (await res.json()) as {
+      success?: boolean | string;
+      message?: string;
+    };
+  } catch {
+    data = {};
+  }
+
+  const success = data.success === true || data.success === "true";
+  if (!res.ok || !success) {
+    const needsActivation =
+      typeof data.message === "string" &&
+      data.message.toLowerCase().includes("activat");
+
+    return {
+      ok: false,
+      error: needsActivation
+        ? "Almost ready — check medodakhly11@gmail.com and click the FormSubmit activation link, then try again."
+        : data.message ||
+          "Could not send your message. Please try again in a moment.",
+    };
+  }
+
+  return { ok: true };
+}
+
+async function sendContactMessage(payload: {
+  name: string;
+  email: string;
+  message: string;
+  website: string;
+}): Promise<SendResult> {
+  // Prefer Resend when configured; otherwise use FormSubmit (no API key needed).
+  try {
+    const primary = await sendViaResend(payload);
+    if (primary !== "unconfigured") return primary;
+  } catch {
+    // Fall through to FormSubmit.
+  }
+
+  return sendViaFormSubmit(payload);
+}
+
 export function Contact() {
-  const [formStatus, setFormStatus] = useState<string | null>(null);
+  const [submitting, setSubmitting] = useState(false);
+  const [formError, setFormError] = useState<string | null>(null);
+  const [showSuccess, setShowSuccess] = useState(false);
   const [activeSocial, setActiveSocial] = useState<"instagram" | "facebook">(
     "instagram",
   );
+  const closeBtnRef = useRef<HTMLButtonElement>(null);
+  const titleId = useId();
+  const descId = useId();
 
-  function submitContact(e: FormEvent<HTMLFormElement>) {
+  useEffect(() => {
+    if (!showSuccess) return;
+
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    closeBtnRef.current?.focus();
+
+    function onKeyDown(event: KeyboardEvent) {
+      if (event.key === "Escape") setShowSuccess(false);
+    }
+
+    window.addEventListener("keydown", onKeyDown);
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      window.removeEventListener("keydown", onKeyDown);
+    };
+  }, [showSuccess]);
+
+  async function submitContact(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    const data = new FormData(e.currentTarget);
-    const name = String(data.get("name") || "").trim();
-    const mail = String(data.get("email") || "").trim();
-    const message = String(data.get("message") || "").trim();
-    if (!name || !mail || !message) return;
+    if (submitting) return;
 
-    const subject = encodeURIComponent(`Portfolio inquiry from ${name}`);
-    const body = encodeURIComponent(
-      `Name: ${name}\nEmail: ${mail}\n\n${message}`,
-    );
-    window.location.href = `mailto:medodakhly11@gmail.com?subject=${subject}&body=${body}`;
-    setFormStatus("Opening your email app…");
-    e.currentTarget.reset();
+    setFormError(null);
+    const form = e.currentTarget;
+    const data = new FormData(form);
+    const name = String(data.get("name") || "").trim();
+    const email = String(data.get("email") || "").trim();
+    const message = String(data.get("message") || "").trim();
+    const website = String(data.get("website") || "").trim();
+
+    if (!name || !email || !message) {
+      setFormError("Please fill out every field.");
+      return;
+    }
+
+    setSubmitting(true);
+
+    try {
+      const sent = await sendContactMessage({ name, email, message, website });
+      if (!sent.ok) {
+        setFormError(sent.error);
+        return;
+      }
+
+      form.reset();
+      setShowSuccess(true);
+    } catch {
+      setFormError(
+        "Network error. Check your connection and try sending again.",
+      );
+    } finally {
+      setSubmitting(false);
+    }
   }
 
   const socialHref =
@@ -65,7 +227,7 @@ export function Contact() {
           initial={{ scaleX: 0 }}
           whileInView={{ scaleX: 1 }}
           viewport={{ once: true }}
-          transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1], delay: 0.12 }}
+          transition={{ duration: 0.7, ease: easeOut, delay: 0.12 }}
         />
       </motion.div>
 
@@ -90,13 +252,31 @@ export function Contact() {
               medodakhly11@gmail.com
             </a>
           </p>
-          <form onSubmit={submitContact} className="mt-6 space-y-4">
+          <form
+            onSubmit={submitContact}
+            className="mt-6 space-y-4"
+            noValidate
+          >
+            {/* Honeypot — leave empty */}
+            <input
+              type="text"
+              name="website"
+              tabIndex={-1}
+              autoComplete="off"
+              aria-hidden="true"
+              className="pointer-events-none absolute -left-[9999px] h-0 w-0 opacity-0"
+            />
+
             <label className="block text-sm">
               <span className="mb-1.5 block font-medium">Name</span>
               <input
                 name="name"
                 required
-                className="focus-ring w-full rounded-2xl border border-[var(--border)] bg-[var(--bg)] px-4 py-3 outline-none"
+                minLength={2}
+                maxLength={100}
+                disabled={submitting}
+                autoComplete="name"
+                className="focus-ring w-full rounded-2xl border border-[var(--border)] bg-[var(--bg)] px-4 py-3 outline-none disabled:opacity-60"
               />
             </label>
             <label className="block text-sm">
@@ -105,7 +285,10 @@ export function Contact() {
                 name="email"
                 type="email"
                 required
-                className="focus-ring w-full rounded-2xl border border-[var(--border)] bg-[var(--bg)] px-4 py-3 outline-none"
+                maxLength={254}
+                disabled={submitting}
+                autoComplete="email"
+                className="focus-ring w-full rounded-2xl border border-[var(--border)] bg-[var(--bg)] px-4 py-3 outline-none disabled:opacity-60"
               />
             </label>
             <label className="block text-sm">
@@ -113,18 +296,33 @@ export function Contact() {
               <textarea
                 name="message"
                 required
+                minLength={5}
+                maxLength={5000}
                 rows={4}
-                className="focus-ring w-full resize-none rounded-2xl border border-[var(--border)] bg-[var(--bg)] px-4 py-3 outline-none"
+                disabled={submitting}
+                className="focus-ring w-full resize-none rounded-2xl border border-[var(--border)] bg-[var(--bg)] px-4 py-3 outline-none disabled:opacity-60"
               />
             </label>
             <button
               type="submit"
-              className="focus-ring inline-flex items-center gap-2 rounded-full bg-[var(--fg)] px-5 py-3 text-sm font-semibold text-[var(--bg)]"
+              disabled={submitting}
+              className="focus-ring inline-flex items-center gap-2 rounded-full bg-[var(--fg)] px-5 py-3 text-sm font-semibold text-[var(--bg)] disabled:cursor-not-allowed disabled:opacity-70"
             >
-              <Send className="size-4" strokeWidth={1.5} /> Send Message
+              {submitting ? (
+                <>
+                  <Loader2 className="size-4 animate-spin" strokeWidth={1.5} />
+                  Sending…
+                </>
+              ) : (
+                <>
+                  <Send className="size-4" strokeWidth={1.5} /> Send Message
+                </>
+              )}
             </button>
-            {formStatus ? (
-              <p className="text-sm text-[var(--fg-muted)]">{formStatus}</p>
+            {formError ? (
+              <p role="alert" className="text-sm text-red-500">
+                {formError}
+              </p>
             ) : null}
           </form>
         </motion.div>
@@ -211,6 +409,91 @@ export function Contact() {
           </p>
         </motion.div>
       </div>
+
+      <AnimatePresence>
+        {showSuccess ? (
+          <motion.div
+            key="contact-success"
+            role="presentation"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.25, ease: easeOut }}
+            className="fixed inset-0 z-[80] flex items-center justify-center bg-black/55 px-4 backdrop-blur-sm"
+            onClick={() => setShowSuccess(false)}
+          >
+            <motion.div
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby={titleId}
+              aria-describedby={descId}
+              initial={{ opacity: 0, y: 18, scale: 0.96 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 12, scale: 0.97 }}
+              transition={{ duration: 0.35, ease: easeOut }}
+              onClick={(event) => event.stopPropagation()}
+              className="relative w-full max-w-md rounded-2xl border border-[var(--border)] bg-[var(--bg-elevated)] p-8 shadow-[var(--shadow)]"
+            >
+              <button
+                ref={closeBtnRef}
+                type="button"
+                aria-label="Close"
+                onClick={() => setShowSuccess(false)}
+                className="focus-ring absolute top-3 right-3 inline-flex size-9 items-center justify-center rounded-full border border-[var(--border)] text-[var(--fg-muted)] transition-colors hover:text-[var(--fg)]"
+              >
+                <X className="size-4" strokeWidth={1.5} />
+              </button>
+
+              <div className="flex flex-col items-center text-center">
+                <motion.div
+                  initial={{ scale: 0.6, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  transition={{ duration: 0.45, ease: easeOut, delay: 0.05 }}
+                  className="relative mb-5 flex size-16 items-center justify-center"
+                >
+                  <span
+                    aria-hidden
+                    className="absolute inset-0 rounded-full bg-emerald-400/25 blur-xl"
+                  />
+                  <span
+                    aria-hidden
+                    className="absolute inset-1 rounded-full bg-emerald-400/15 blur-md"
+                  />
+                  <CheckCircle2
+                    className="relative size-14 text-emerald-400"
+                    strokeWidth={1.5}
+                    style={{
+                      filter:
+                        "drop-shadow(0 0 10px rgba(52, 211, 153, 0.85)) drop-shadow(0 0 22px rgba(16, 185, 129, 0.55))",
+                    }}
+                  />
+                </motion.div>
+
+                <h3
+                  id={titleId}
+                  className="font-display text-2xl font-medium tracking-tight"
+                >
+                  Message sent
+                </h3>
+                <p
+                  id={descId}
+                  className="mt-3 text-sm leading-relaxed font-light text-[var(--fg-muted)]"
+                >
+                  {SUCCESS_COPY}
+                </p>
+
+                <button
+                  type="button"
+                  onClick={() => setShowSuccess(false)}
+                  className="focus-ring mt-7 inline-flex items-center justify-center rounded-full bg-[var(--fg)] px-6 py-2.5 text-xs font-medium tracking-[0.12em] uppercase text-[var(--bg)]"
+                >
+                  Close
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        ) : null}
+      </AnimatePresence>
     </section>
   );
 }
