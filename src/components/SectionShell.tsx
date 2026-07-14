@@ -21,8 +21,8 @@ type SectionShellProps = {
 type IntroPhase = "off" | "hold" | "exit";
 
 /**
- * Same structure as the main site intro:
- * blank aesthetic screen → section title → wipe away → real section.
+ * Blank aesthetic intro → title → wipe, without locking scroll.
+ * Overlay is pointer-events-none so the page keeps scrolling underneath.
  */
 export function SectionShell({
   id,
@@ -40,8 +40,7 @@ export function SectionShell({
 
   const [phase, setPhase] = useState<IntroPhase>("off");
   const [contentKey, setContentKey] = useState(0);
-  // Content stays hidden until this section's blank intro finishes (hero is quiet)
-  const [showContent, setShowContent] = useState(quiet);
+  const [revealed, setRevealed] = useState(quiet);
 
   const clearTimers = () => {
     timers.current.forEach((t) => window.clearTimeout(t));
@@ -64,41 +63,34 @@ export function SectionShell({
       clearTimers();
       const myRun = ++runId.current;
 
-      setShowContent(false);
+      setRevealed(false);
       setPhase("hold");
-      const prevOverflow = document.body.style.overflow;
-      document.body.style.overflow = "hidden";
+      // Scroll stays enabled — overlay is pointer-events-none
 
-      // Hold on blank + title
       timers.current.push(
         window.setTimeout(() => {
           if (runId.current !== myRun) return;
           setPhase("exit");
-        }, 1050),
+          // Start revealing content as the wipe begins
+          setRevealed(true);
+          setContentKey((k) => k + 1);
+        }, 950),
       );
 
-      // Finish wipe → reveal section
       timers.current.push(
         window.setTimeout(() => {
           if (runId.current !== myRun) return;
           setPhase("off");
-          setContentKey((k) => k + 1);
-          setShowContent(true);
-          document.body.style.overflow = prevOverflow || "";
-        }, 1550),
+        }, 1450),
       );
     },
     [enabled, quiet],
   );
 
   useEffect(() => {
-    return () => {
-      clearTimers();
-      document.body.style.overflow = "";
-    };
+    return () => clearTimers();
   }, []);
 
-  // Scroll into section
   useEffect(() => {
     if (!enabled || quiet) return;
     if (inView && !wasInView.current && !suppressScroll.current) {
@@ -107,7 +99,6 @@ export function SectionShell({
     wasInView.current = inView;
   }, [inView, enabled, quiet, playIntro]);
 
-  // Nav click
   useEffect(() => {
     function onNav(e: Event) {
       const detail = (e as CustomEvent<{ id: string }>).detail;
@@ -127,33 +118,32 @@ export function SectionShell({
         {active ? (
           <motion.div
             key={`section-intro-${id}-${runId.current}`}
-            className="fixed inset-0 z-[90] flex items-center justify-center overflow-hidden bg-[var(--bg)]"
+            className="pointer-events-none fixed inset-0 z-[90] flex items-center justify-center overflow-hidden bg-[var(--bg)]"
             initial={{ opacity: 1 }}
             animate={
               phase === "exit"
                 ? {
                     opacity: 0,
-                    y: -20,
-                    transition: { duration: 0.45, ease: easeOut },
+                    y: -16,
+                    transition: { duration: 0.5, ease: easeOut },
                   }
                 : { opacity: 1, y: 0 }
             }
             exit={{ opacity: 0, transition: { duration: 0.25, ease: easeOut } }}
             aria-hidden
           >
-            {/* Soft aesthetic wash — same language as site intro */}
             <motion.div
-              className="pointer-events-none absolute inset-0"
+              className="absolute inset-0"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              transition={{ duration: 0.35, ease: easeOut }}
+              transition={{ duration: 0.3, ease: easeOut }}
               style={{
                 background:
                   "radial-gradient(ellipse 70% 50% at 50% 40%, var(--accent-soft), transparent 70%)",
               }}
             />
             <div
-              className="pointer-events-none absolute inset-0 opacity-[0.035]"
+              className="absolute inset-0 opacity-[0.035]"
               style={{
                 backgroundImage:
                   "radial-gradient(rgba(128,128,128,0.5) 0.6px, transparent 0.6px)",
@@ -180,7 +170,7 @@ export function SectionShell({
                   className="block"
                   initial={{ y: "115%" }}
                   animate={phase === "exit" ? { y: "-110%" } : { y: "0%" }}
-                  transition={{ duration: 0.5, ease: easeOut, delay: 0.08 }}
+                  transition={{ duration: 0.48, ease: easeOut, delay: 0.06 }}
                 >
                   {title}
                 </motion.span>
@@ -194,12 +184,11 @@ export function SectionShell({
                     ? { scaleX: 0, opacity: 0 }
                     : { scaleX: 1, opacity: 1 }
                 }
-                transition={{ duration: 0.4, ease: easeOut, delay: 0.28 }}
+                transition={{ duration: 0.38, ease: easeOut, delay: 0.22 }}
                 style={{ width: "3.5rem", originX: 0.5 }}
               />
             </div>
 
-            {/* Curtain wipe — same as site intro */}
             <motion.div
               className="absolute inset-x-0 bottom-0 bg-[var(--fg)]"
               initial={{ height: "0%" }}
@@ -216,15 +205,14 @@ export function SectionShell({
         ) : null}
       </AnimatePresence>
 
+      {/* Always in the document flow so scrolling never breaks */}
       <motion.div
         key={`section-body-${id}-${contentKey}`}
-        initial={{ opacity: 0, y: 28 }}
+        initial={false}
         animate={
-          showContent && phase === "off"
-            ? { opacity: 1, y: 0 }
-            : { opacity: 0, y: 20 }
+          revealed ? { opacity: 1, y: 0 } : { opacity: 0, y: 24 }
         }
-        transition={{ duration: 0.45, ease: easeOut }}
+        transition={{ duration: 0.5, ease: easeOut }}
         style={{ willChange: "opacity, transform" }}
       >
         {children}

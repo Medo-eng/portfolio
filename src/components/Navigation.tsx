@@ -25,9 +25,8 @@ const links = [
 function goToSection(id: string) {
   const el = document.getElementById(id);
   if (!el) return;
-  // Jump under the blank intro, then play the section splash
-  el.scrollIntoView({ behavior: "auto", block: "start" });
   triggerSectionIntro(id);
+  el.scrollIntoView({ behavior: "smooth", block: "start" });
 }
 
 export function Navigation({ ready = true }: { ready?: boolean }) {
